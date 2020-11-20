@@ -1,0 +1,1 @@
+python train_multi.py --model_def config/yolov3-tiny.cfg --data_config config/3w8r+cds+pinp123+sr.data --batch_size 160 -mn tiny_3w8r+cds+pinp123+sr --start_epoch 101 --pretrained_weights checkpoints/tiny_3w8r+cds+pinp123+sr_100.pth
