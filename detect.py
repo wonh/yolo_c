@@ -67,27 +67,6 @@ if __name__ == "__main__":
     imgs = []  # Stores image paths
     img_detections = []  # Stores detections for each image index
 
-    # ============json================
-
-    import json
-    import pickle
-    with open(r'json/test_Annotation_fake_polyp.json') as f:
-        fp_dict = json.load(f)
-    with open(r'json/test_Annotation_polyp.json') as f:
-        p_dict = json.load(f)
-    fp_images = fp_dict['images']
-    image_to_id = {}
-    for d in fp_images:
-        image_to_id.update({d['file_name']:d['id']})
-    p_images = p_dict['images']
-    for d in p_images:
-        image_to_id.update({d['file_name']:d['id']})
-    # fp_categories = fp_dict['categories']
-    # p_categories = p_dict['categories']
-    result_list = []
-
-    # ================================
-
     print("\nPerforming object detection:")
     prev_time = time.time()
     for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
@@ -118,9 +97,6 @@ if __name__ == "__main__":
 
     print("\nSaving images:")
     # Iterate through images and save plot of detections
-    polyp_num = 0
-
-    fake_polyp_num = 0
     for img_i, (path, detections) in enumerate(zip(imgs, img_detections)):
 
         print("(%d) Image: '%s'" % (img_i, path))
@@ -142,12 +118,6 @@ if __name__ == "__main__":
             n_cls_preds = len(unique_labels)
             bbox_colors = random.sample(colors, n_cls_preds)
             for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
-                # result_list.append({"image_id": id_num, "category_id": int(cls_pred), "bbox": [x1.cpu().numpy(), y1.cpu().numpy(), x2.cpu().numpy(), y2.cpu().numpy()], "score": float(cls_conf)})
-                # if cls_pred != 8 and cls_pred != 9:
-                if int(cls_pred)==0:
-                    polyp_flag = 1
-                else:
-                    continue
                 print("\t+ Label: %s, Conf: %.5f" % (classes[int(cls_pred)], cls_conf.item()))
                 box_w = x2 - x1
                 box_h = y2 - y1
@@ -174,12 +144,6 @@ if __name__ == "__main__":
         plt.gca().yaxis.set_major_locator(NullLocator())
         filename = path.split("/")[-1].split(".")[0]
 
-        if polyp_flag:
-            polyp_num += 1
-            plt.savefig("output/0/{}.jpg".format(filename), bbox_inches="tight", pad_inches=0.0)
-        else:
-            plt.savefig("output/1/{}.jpg".format(filename), bbox_inches="tight", pad_inches=0.0)
+        plt.savefig("output/{}.jpg".format(filename), bbox_inches="tight", pad_inches=0.0)
         plt.close()
-    # with open('results-fake-polyp.pkl', 'wb') as f:
-    #     pickle.dump(result_list, f)
-    print(polyp_num, fake_polyp_num)
+

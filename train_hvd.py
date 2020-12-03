@@ -1,15 +1,9 @@
 from __future__ import division
-
 from models import *
-# from utils.logger import Logger as logger
 from utils.utils import *
 from utils.datasets import *
 from utils.parse_config import *
 from test import evaluate
-
-# from terminaltables import AsciiTable
-#from apex.parallel import DistributedDataParallel
-# import horovod.torch as hvd
 from tensorboardX import SummaryWriter
 
 import os
@@ -62,21 +56,13 @@ if __name__ == "__main__":
     hvd.init()
     if torch.cuda.is_available():
         torch.cuda.set_device(hvd.local_rank())
-    # dist.init_process_group(init_method=opt.init_method, backend="nccl", world_size=opt.world_size, rank=opt.rank,
-    #                         group_name="pytorch_yolo")
-    # os.makedirs("output", exist_ok=True)
-    # os.makedirs("checkpoints", exist_ok=True)
-    # Get data configuration
-    data_config = parse_data_config(opt.data_config)
-    train_path = data_config["train"]
-    valid_path = data_config["valid"]
-    class_names = load_classes(data_config["names"])
-    print(class_names)
+
     # Initiate model
     model = Darknet(opt.model_def)
     print('model created')
     model.apply(weights_init_normal)
     print('模型初始化完成')
+
     # sync_initial_weights(model, opt.rank, opt.world_size)
     model = model.cuda()
     # If specified we start from checkpoint
@@ -85,11 +71,13 @@ if __name__ == "__main__":
             model.load_state_dict(torch.load(opt.pretrained_weights))
         else:
             model.load_darknet_weights(opt.pretrained_weights)
-    print('开始分发模型')
-    # 分发模型
-    # model = torch.nn.parallel.DistributedDataParallel(model,find_unused_parameters=False)
-    # model = DistributedDataParallel(model)
-    print('模型分发完成',model)
+
+    # parse data config
+    data_config = parse_data_config(opt.data_config)
+    train_path = data_config["train"]
+    valid_path = data_config["valid"]
+    class_names = load_classes(data_config["names"])
+    print(class_names)
 
     # Get dataloader
     dataset = ListDataset(train_path, augment=opt.flip, multiscale=opt.multiscale_training)
@@ -110,60 +98,7 @@ if __name__ == "__main__":
     # test_size = len(dataset) - train_size
     # train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
 
-    #===============================569 test==========================================================
-    # normalizer = transforms.Normalize(mean=[0.265, 0.279, 0.423],
-    #                                   std=[0.209, 0.217, 0.297])
-    normalizer = transforms.Normalize(mean=[0.423, 0.279, 0.265],
-                                      std=[0.297, 0.217, 0.209])
-    transformer = T.Compose([
-        # transforms.ColorJitter(0.1, 0.1, 0.1),
-        # T.RandomHorizontalFlip(),
-        # T.RandomVerticalFlip(),
-        T.ToTensor(),
-        normalizer,
-    ])
-    dataset_569 = ImageFolder(r'../data/info/src/29.80-polyp-and-fake/polyp', img_size=opt.img_size,
-                              transform=transformer)
-    dataset_3119 = ImageFolder(r'../data/info/src/29.80-polyp-and-fake/fake-polyp', img_size=opt.img_size,
-                               transform=transformer)
 
-
-    dataloader_569 = DataLoader(
-        # ImageFolder(opt.image_folder, img_size=opt.img_size),
-        dataset=dataset_569,
-        batch_size=opt.batch_size,
-        shuffle=False,
-        num_workers=opt.n_cpu,
-        # sampler=sampler,
-    )
-
-    dataloader_3119 = DataLoader(
-        # ImageFolder(opt.image_folder, img_size=opt.img_size),
-        dataset=dataset_3119,
-        batch_size=opt.batch_size,
-        shuffle=False,
-        num_workers=opt.n_cpu,
-        # sampler=sampler,
-    )
-
-    Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
-    polyp_path1 = r'../data/info/src/29.80-polyp-and-fake/polyp'
-    polyp_path2 = r'../data/info/src/polyp-bland-test/29.80-polyp-406'
-    polyp_name_406 = []
-    polyp_name_569 = []
-    final_name = {}
-    for root, dirs, files in os.walk(polyp_path2):
-        for file in files:
-            basename = os.path.basename(file)
-            polyp_name_406.append(file)
-    print('polyp_num', len(polyp_name_406))
-    for root, dirs, files in os.walk(polyp_path1):
-        for file in files:
-            basename = os.path.basename(file)
-            polyp_name_569.append(file)
-    print('polyp_num', len(polyp_name_569))
-
-    #################################################################################################
 
     def adjust_learning_rate(optimizer, epoch):
         """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
@@ -226,12 +161,6 @@ if __name__ == "__main__":
 
             epoch_batches_left = len(dataloader) - (batch_i + 1)
             print(log_str, end='\r')
-            # model.module.seen += imgs.size(0)
-            # stop_time = time.time()
-            # print("total time:{0}  forward_time:{1}   backward_time:{2}  update_time:{3}".format(
-            #     stop_time - start_time, forward_time - start_time, backward_time - forward_time,
-            #     update_time - backward_time
-            # ))
             epoch_loss += loss.item()
             # metric_table = [["Metrics", *["YOLO Layer {}".format(i) for i in range(len(model.module.yolo_layers))]]]
             metric_table = [["Metrics", *["YOLO Layer {}".format(i) for i in range(len(model.yolo_layers))]]]
