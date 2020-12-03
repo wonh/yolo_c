@@ -1,0 +1,6 @@
+classes= 3
+train=/home/whr/data/detection/data_weibi_1/train.txt
+valid=/home/whr/data/detection/data_weibi_1/val.txt
+names=./data/weibi.name
+backup=backup/
+eval=my
