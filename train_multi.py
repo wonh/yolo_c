@@ -116,48 +116,8 @@ if __name__ == "__main__":
         T.ToTensor(),
         normalizer,
     ])
-    dataset_569 = ImageFolder(r'../data/info/src/29.80-polyp-and-fake/polyp', img_size=opt.img_size,
-                              transform=transformer)
-    dataset_3119 = ImageFolder(r'../data/info/src/29.80-polyp-and-fake/fake-polyp', img_size=opt.img_size,
-                               transform=transformer)
-
-
-    dataloader_569 = DataLoader(
-        # ImageFolder(opt.image_folder, img_size=opt.img_size),
-        dataset=dataset_569,
-        batch_size=opt.batch_size,
-        shuffle=False,
-        num_workers=opt.n_cpu,
-        # sampler=sampler,
-    )
-
-    dataloader_3119 = DataLoader(
-        # ImageFolder(opt.image_folder, img_size=opt.img_size),
-        dataset=dataset_3119,
-        batch_size=opt.batch_size,
-        shuffle=False,
-        num_workers=opt.n_cpu,
-        # sampler=sampler,
-    )
 
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
-    polyp_path1 = r'../data/info/src/29.80-polyp-and-fake/polyp'
-    polyp_path2 = r'../data/info/src/polyp-bland-test/29.80-polyp-406'
-    polyp_name_406 = []
-    polyp_name_569 = []
-    final_name = {}
-    for root, dirs, files in os.walk(polyp_path2):
-        for file in files:
-            basename = os.path.basename(file)
-            polyp_name_406.append(file)
-    print('polyp_num', len(polyp_name_406))
-    for root, dirs, files in os.walk(polyp_path1):
-        for file in files:
-            basename = os.path.basename(file)
-            polyp_name_569.append(file)
-    print('polyp_num', len(polyp_name_569))
-
-    #################################################################################################
 
     def adjust_learning_rate(optimizer, epoch):
         """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
@@ -259,13 +219,6 @@ if __name__ == "__main__":
                     ("val_mAP", AP.mean()),
                     ("val_f1", f1.mean()),
                 ]
-                # writer.add_scalars("analysis", {
-                #                            "train_mAP": AP2.mean(),
-                #                            "train_recall": recall2.mean(),
-                #                            "train_precision": precision2.mean(),
-                #                            "train_f1": f12.mean(),
-                #                            "train_loss": train_loss.item(),
-                #                            }, epoch)
                 writer.add_scalars("analysis", {"val_precision": precision.mean(),
                                             "val_recall": recall.mean(),
                                             "val_mAP": AP.mean(),
@@ -280,52 +233,6 @@ if __name__ == "__main__":
                     mapMax = AP.mean()
                     torch.save(model.module.state_dict(),"checkpoints/{}_max_map.pth".format(opt.model_name))
                     mapweight = "checkpoints/{}_{:.4f}.pth".format(opt.model_name, lossMin)
-        # Evaluate the model on val set
-        pp_num = 0
-        fp_num = 0
-        img_detections = []
-        imgs=[]
-        for batch_i, (img_paths, input_imgs) in enumerate(tqdm(dataloader_3119)):
-            input_imgs = input_imgs.cuda()
-            # Get detections
-            with torch.no_grad():
-                detections = model(input_imgs)
-                detections = non_max_suppression2(detections, 0.5, 0.5)
-                img_detections.extend(detections)
-            imgs.extend(img_paths)
-        for img_i, (path, detections) in enumerate(zip(imgs, img_detections)):
-            if detections is not None:
-                img = np.array(Image.open(path))
-                detections = rescale_boxes(detections, 416, img.shape[:2])
-                count_flag = False
-                for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
-                    if int(cls_pred) == 0 and cls_conf > 0 and conf > 0.5:
-                        count_flag = True
-                if count_flag:
-                    fp_num += 1
-
-        img_detections = []
-        imgs =[]
-        for batch_i, (img_paths, input_imgs) in enumerate(tqdm(dataloader_569)):
-            input_imgs = input_imgs.cuda()
-            # Get detections
-            with torch.no_grad():
-                detections = model(input_imgs)
-                detections = non_max_suppression2(detections, 0.5, 0.5)
-                img_detections.extend(detections)
-            imgs.extend(img_paths)
-        for img_i, (path, detections) in enumerate(zip(imgs, img_detections)):
-            if detections is not None:
-                img = np.array(Image.open(path))
-                detections = rescale_boxes(detections, 416, img.shape[:2])
-                count_flag = False
-                for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
-                    if int(cls_pred) == 0 and cls_conf > 0 and conf > 0.5:
-                        count_flag = True
-                if count_flag:
-                    pp_num += 1
-
-        writer.add_scalars("test", {"pp_num": pp_num, "fp_num": fp_num, "map": (pp_num/569 + (3119 - fp_num)/3119)/2}, epoch)
 
         if epoch % opt.checkpoint_interval == 0:
             torch.save(model.module.state_dict(), "checkpoints/{0}_{1}.pth".format(opt.model_name, epoch))

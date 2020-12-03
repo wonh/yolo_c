@@ -1,7 +1,6 @@
 import os
 import re
 from torch.utils.data import dataset, sampler
-from torchvision.datasets.folder import default_loader
 from PIL import Image
 
 def list_pictures(directory, ext='jpg|jpeg|bmp|png|ppm'):
@@ -16,10 +15,10 @@ def list_pictures(directory, ext='jpg|jpeg|bmp|png|ppm'):
     return sorted(imgs)
 
 class Net1_dataset(dataset.Dataset):
-    def __init__(self, root, transform=None, loader=default_loader):
+    def __init__(self, root, transform=None):
         self.root = root
         self.transform = transform
-        self.loader = loader
+        # self.loader = loader
         self.imgs = [path for path in list_pictures(self.root)]
 
     def __getitem__(self, index):

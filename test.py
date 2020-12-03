@@ -40,7 +40,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     for batch_i, (imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
         # img: (batch_size, channel, height, width)
         # target: (num, 6)  6=>(batch_index, cls, center_x, center_y, widht, height)
-        # print("lengh of imgs:{0}, targets:{1}".format(len(imgs), len(targets)))
+        print("lengh of imgs:{0}, targets:{1}".format(len(imgs), len(targets)))
         new_target = []
         for i in range(len(targets)):
             boxes = targets[i, :]
@@ -70,7 +70,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
             # print("non_max_suppression")
             # print("output shape",outputs.size())
             # (batch_size, pred_boxes_num, 7) 7 =》x,y,w,h,conf,class_conf,class_pred
-            outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
+            outputs = non_max_suppression2(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
         # outputs: (batch_size, pred_boxes_num, 7) 7 =》x,y,w,h,conf,class_conf,class_pred
         # target:  (num, 6)  6=>(batch_index, cls, center_x, center_y, widht, height)
