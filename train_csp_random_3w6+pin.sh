@@ -1,1 +1,0 @@
-CUDA_VISIBLE_DEVICES=0,1,2 python train_multi.py --model_def config/csp.cfg --data_config config/3w6+pin.data --batch_size 24 --model_name csp_random_3w6+pin --checkpoint_interval 5 --epoch 300 --pretrained_weights checkpoints/csp_random_3w6+pin_105.pth --start_epoch 180
