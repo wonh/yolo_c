@@ -317,7 +317,7 @@ def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4):
             weights = detections[invalid, 4:5]
 
             # Merge overlapping bboxes by order of confidence
-            # 把预测为同一目标的预测框进行合并，合并后认为是最优的预测框。合并方式如下：
+            # 把预测为同一目标的预测框进行合并，合并后认为是最优的预测框。合并方式如下：(加权平均)
             detections[0, :4] = (weights * detections[invalid, :4]).sum(0) / weights.sum()
             # 保存当前序列中最终识别的预测框
             keep_boxes += [detections[0]]

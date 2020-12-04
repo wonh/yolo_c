@@ -28,7 +28,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     # Get dataloader
     testset = ListDataset(path, img_size=img_size, augment=False, multiscale=False)
     dataloader = torch.utils.data.DataLoader(
-        testset, batch_size=batch_size, shuffle=False, num_workers=8, collate_fn=testset.collate_fn
+        testset, batch_size=batch_size, shuffle=False, num_workers=8, collate_fn=testset.collate_fn,
     )
 
     Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
@@ -83,8 +83,10 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     # true_positives：预测框的正确与否，正确设置为1，错误设置为0
     # pred_scores：预测框的x,y,w,h
     # pred_labels：预测框的类别标签
+    print('compute precision')
     if sample_metrics:
         true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
+        print('true_positives:', true_positives)
         precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
     else:
         precision, recall, AP, f1, ap_class = [0, 0, 0, 0, 0]
@@ -114,7 +116,7 @@ if __name__ == "__main__":
 
     # Initiate model
     model = Darknet(opt.model_def).to(device)
-    model = torch.nn.DataParallel(model)
+
     if opt.weights_path.endswith(".weights"):
         # Load darknet weights
         model.load_darknet_weights(opt.weights_path)
@@ -122,6 +124,7 @@ if __name__ == "__main__":
         # Load checkpoint weights
         model.load_state_dict(torch.load(opt.weights_path))
     # model.cuda()
+    model = torch.nn.DataParallel(model)
     print("Compute mAP...")
 
     precision, recall, AP, f1, ap_class, total_loss = evaluate(

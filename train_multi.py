@@ -170,11 +170,7 @@ if __name__ == "__main__":
             epoch_batches_left = len(dataloader) - (batch_i + 1)
             print(log_str, end='\r')
             model.module.seen += imgs.size(0)
-            # stop_time = time.time()
-            # print("total time:{0}  forward_time:{1}   backward_time:{2}  update_time:{3}".format(
-            #     stop_time - start_time, forward_time - start_time, backward_time - forward_time,
-            #     update_time - backward_time
-            # ))
+
             epoch_loss += loss.item()
             metric_table = [["Metrics", *["YOLO Layer {}".format(i) for i in range(len(model.module.yolo_layers))]]]
             for i, metric in enumerate(metrics):
@@ -204,7 +200,7 @@ if __name__ == "__main__":
                 path=valid_path,
                 iou_thres=0.5,
                 conf_thres=0.5,
-                nms_thres=0.5,
+                nms_thres=0,
                 img_size=opt.img_size,
                 batch_size=opt.batch_size,
             )
@@ -229,6 +225,9 @@ if __name__ == "__main__":
                 for i, c in enumerate(ap_class):
                     ap_table += [[c, class_names[c], "%.5f" % AP[i]]]
                 print("---- mAP {}".format(AP.mean()))
+                for i, c in enumerate(ap_class):
+                    print("+ Class '{}' ({}) - AP: {} - recall:{}".format(c, class_names[c], AP[i], recall[i]))
+                print(recall)
                 if mapMax <= AP.mean():
                     mapMax = AP.mean()
                     torch.save(model.module.state_dict(),"checkpoints/{}_max_map.pth".format(opt.model_name))

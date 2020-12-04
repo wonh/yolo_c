@@ -122,7 +122,6 @@ if __name__ == "__main__":
                 box_w = x2 - x1
                 box_h = y2 - y1
                 print('x1: {}, y1: {}, x2: {}, y2: {}'.format(x1, y1, x2, y2))
-
                 color = bbox_colors[int(np.where(unique_labels == int(cls_pred))[0])]
                 # Create a Rectangle patch
                 bbox = patches.Rectangle((x1, y1), box_w, box_h, linewidth=2, edgecolor=color, facecolor="none")
@@ -143,7 +142,6 @@ if __name__ == "__main__":
         plt.gca().xaxis.set_major_locator(NullLocator())
         plt.gca().yaxis.set_major_locator(NullLocator())
         filename = path.split("/")[-1].split(".")[0]
-
         plt.savefig("output/{}.jpg".format(filename), bbox_inches="tight", pad_inches=0.0)
         plt.close()
 
