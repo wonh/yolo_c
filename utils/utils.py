@@ -76,14 +76,13 @@ def ap_per_class(tp, conf, pred_cls, target_cls):
     # Sort by objectness
     i = np.argsort(-conf)
     tp, conf, pred_cls = tp[i], conf[i], pred_cls[i]
-
     # Find unique classes
     unique_classes = np.unique(target_cls)
 
     # Create Precision-Recall curve and compute AP for each class
-    ap, p, r = [], [], []
+    ap, p, r, score = [], [], [], []
     for c in tqdm.tqdm(unique_classes, desc="Computing AP"):
-        i = pred_cls == c
+        i = pred_cls == c  # index for predicted c classs
         n_gt = (target_cls == c).sum()  # Number of ground truth objects
         n_p = i.sum()  # Number of predicted objects
 
@@ -93,6 +92,7 @@ def ap_per_class(tp, conf, pred_cls, target_cls):
             ap.append(0)
             r.append(0)
             p.append(0)
+            score.append(0)
         else:
             # Accumulate FPs and TPs
             fpc = (1 - tp[i]).cumsum()
@@ -108,6 +108,10 @@ def ap_per_class(tp, conf, pred_cls, target_cls):
 
             # AP from recall-precision curve
             ap.append(compute_ap(recall_curve, precision_curve))
+
+            # score.append(conf[i][-1])
+            # print(tpc, recall_curve ,precision_curve)
+            # print(r, p, score)
 
     # Compute F1 score (harmonic mean of precision and recall)
     p, r, ap = np.array(p), np.array(r), np.array(ap)

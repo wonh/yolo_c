@@ -83,10 +83,10 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     # true_positives：预测框的正确与否，正确设置为1，错误设置为0
     # pred_scores：预测框的x,y,w,h
     # pred_labels：预测框的类别标签
-    print('compute precision')
+    # print('compute precision')
     if sample_metrics:
         true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
-        print('true_positives:', true_positives)
+        # print('true_positives:', true_positives)
         precision, recall, AP, f1, ap_class = ap_per_class(true_positives, pred_scores, pred_labels, labels)
     else:
         precision, recall, AP, f1, ap_class = [0, 0, 0, 0, 0]
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     model = torch.nn.DataParallel(model)
     print("Compute mAP...")
 
-    precision, recall, AP, f1, ap_class, total_loss = evaluate(
+    precision, recall, AP, f1, ap_class = evaluate(
         model,
         path=valid_path,
         iou_thres=opt.iou_thres,
