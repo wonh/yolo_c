@@ -12,6 +12,7 @@ import numpy as np
 # import matplotlib.patches as patches
 # from lib.model.roi_layers import nms
 from torchvision.ops import nms
+import matplotlib.pyplot as plt
 
 def to_cpu(tensor):
     return tensor.detach().cpu()
@@ -107,7 +108,7 @@ def ap_per_class(tp, conf, pred_cls, target_cls):
             p.append(precision_curve[-1])
 
             # AP from recall-precision curve
-            ap.append(compute_ap(recall_curve, precision_curve))
+            ap.append(compute_ap(recall_curve, precision_curve, c))
 
             # score.append(conf[i][-1])
             # print(tpc, recall_curve ,precision_curve)
@@ -120,7 +121,7 @@ def ap_per_class(tp, conf, pred_cls, target_cls):
     return p, r, ap, f1, unique_classes.astype("int32")
 
 
-def compute_ap(recall, precision):
+def compute_ap(recall, precision, class_name):
     """ Compute the average precision, given the recall and precision curves.
     Code originally from https://github.com/rbgirshick/py-faster-rcnn.
 
@@ -138,6 +139,10 @@ def compute_ap(recall, precision):
     # compute the precision envelope
     for i in range(mpre.size - 1, 0, -1):
         mpre[i - 1] = np.maximum(mpre[i - 1], mpre[i])
+
+    figure = plt.figure(figsize=(8,8))
+    lines = plt.plot(mrec, mpre)
+    plt.savefig(r'./output/{}prcurve.png'.format(class_name))
 
     # to calculate area under PR curve, look for points
     # where X axis (recall) changes value
