@@ -12,7 +12,7 @@ from utils.utils import build_targets, to_cpu, non_max_suppression
 
 # import matplotlib.pyplot as plt
 # import matplotlib.patches as patches
-
+from utils.focal_loss import FocalLoss
 
 def create_modules(module_defs):
     """
@@ -115,6 +115,7 @@ class YOLOLayer(nn.Module):
         self.ignore_thres = 0.5
         self.mse_loss = nn.MSELoss()
         self.bce_loss = nn.BCELoss()
+        self.focal_loss = FocalLoss(num_classes)
         self.obj_scale = 1
         self.noobj_scale = 100
         self.metrics = {}
@@ -236,7 +237,8 @@ class YOLOLayer(nn.Module):
             loss_conf_noobj = self.bce_loss(pred_conf[noobj_mask], tconf[noobj_mask])  # tconf[noobj_mask] 全为0
             loss_conf = self.obj_scale * loss_conf_obj + self.noobj_scale * loss_conf_noobj
             # 类别的loss计算
-            loss_cls = self.bce_loss(pred_cls[obj_mask], tcls[obj_mask])
+            # loss_cls = self.bce_loss(pred_cls[obj_mask], tcls[obj_mask])
+            loss_cls = self.focal_loss(pred_cls[obj_mask], tcls[obj_mask])
 
             # loss汇总
             total_loss = loss_x + loss_y + loss_w + loss_h + loss_conf + loss_cls
