@@ -204,11 +204,6 @@ class ListDataset(Dataset):
         imgs, targets = list(zip(*batch))
         # Remove empty placeholder targets
         targets = [boxes for boxes in targets if boxes is not None]
-        # # Add sample index to targets
-        # for i, boxes in enumerate(targets):
-        #     # boxes[:, 0] = i
-        #     boxes = boxes.view(1,-1)
-        # print('targets',len(targets),targets[0].shape,targets[1].shape)
         targets = torch.stack(targets, 0)
         # print("collate:",targets.shape)
         # Selects new image size every tenth batch
