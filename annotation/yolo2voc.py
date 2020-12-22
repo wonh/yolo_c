@@ -84,10 +84,16 @@ def create_file(file_prefix, width, height, voc_labels):
 
 def read_file(file_path):
     file_prefix = os.path.basename(file_path).split(".txt")[0]
-    image_file_name = file_path.replace(".txt", ".jpg").replace("labels/", "")
+    image_file_name = file_path.replace(".txt", ".jpg").replace("labels/", "img/")
     # image_file_name = "{}.jpg".format(file_prefix)
     # img = Image.open("{}/{}".format("images", image_file_name))
-    img = Image.open(image_file_name)
+    if os.path.exists(image_file_name):
+        img = Image.open(image_file_name)
+    else:
+        if os.path.exists(image_file_name.replace('.jpg', '.Jpeg')):
+            img = Image.open(image_file_name.replace('.jpg', '.Jpeg'))
+        else:
+            img = Image.open(image_file_name.replace('.jpg', '.bmp'))
     w, h = img.size
     with open(file_path, 'r') as file:
         lines = file.readlines()
@@ -123,15 +129,22 @@ def start(dir_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--image_folder", type=str, default="data/samples", help="path to dataset")
-    ANNOTATIONS_DIR_PREFIX = "/mnt/disk84/yolov5/runs/detect/exp8/labels/"
+    args = parser.parse_args()
+    for path in os.listdir(args.image_folder):
+        if 'exp' in path:
+            continue
+        # ANNOTATIONS_DIR_PREFIX = "/mnt/disk84/yolov5/runs/detect/exp8/labels/"
+        ANNOTATIONS_DIR_PREFIX = os.path.join(args.image_folder, path, 'labels')
+        # DESTINATION_DIR = "/mnt/disk84/yolov5/runs/detect/exp8/converted_labels"
+        DESTINATION_DIR = os.path.join(args.image_folder, path, 'xml')
+        CLASS_MAPPING = {
+            '0': 'wd1',
+            '1': 'wd2',
+            '2': 'bm',
+            '3': 'czx',
+            # '4': 'cz'
+            # Add your remaining classes here.
+        }
 
-    DESTINATION_DIR = "/mnt/disk84/yolov5/runs/detect/exp8/converted_labels"
+        start('none')
 
-    CLASS_MAPPING = {
-        '0': 'wd1',
-        '1': 'wd2',
-        '2': 'bm',
-        # Add your remaining classes here.
-    }
-
-    start('none')
